@@ -22,6 +22,24 @@ export interface GitHubIssue {
     url: string;
     merged_at: string | null;
   };
+  similarity?: number;
+  reasoning?: string;
+  matchTypes?: string[];
+}
+
+export interface RepositoryInfo {
+  id: number;
+  name: string;
+  full_name: string;
+  description?: string;
+  language?: string;
+  stargazers_count: number;
+  forks_count: number;
+  open_issues_count: number;
+  created_at: string;
+  updated_at: string;
+  homepage?: string;
+  topics: string[];
 }
 
 export interface SearchFilters {
@@ -39,6 +57,14 @@ interface SearchState {
   error: string | null;
   totalCount: number;
   availableLabels: string[];
+  repositoryInfo: RepositoryInfo | null;
+  searchSummary: string;
+  searchMethod: 'llm-powered' | 'keyword-based' | null;
+  repositoryMetadata: {
+    labels: Array<{ name: string; color: string; description?: string }>;
+    milestones: Array<{ title: string; state: string; description?: string }>;
+    releases: Array<{ name: string; tag_name: string; published_at: string }>;
+  } | null;
 }
 
 type SearchAction =
@@ -47,7 +73,15 @@ type SearchAction =
   | { type: 'SET_FILTERS'; payload: Partial<SearchFilters> }
   | { type: 'SET_LOADING'; payload: boolean }
   | { type: 'SET_ERROR'; payload: string | null }
-  | { type: 'SET_RESULTS'; payload: { results: GitHubIssue[]; totalCount: number; availableLabels: string[] } }
+  | { type: 'SET_RESULTS'; payload: { 
+      results: GitHubIssue[]; 
+      totalCount: number; 
+      availableLabels: string[];
+      repositoryInfo?: RepositoryInfo;
+      searchSummary?: string;
+      searchMethod?: 'llm-powered' | 'keyword-based';
+    } }
+  | { type: 'SET_REPOSITORY_METADATA'; payload: SearchState['repositoryMetadata'] }
   | { type: 'CLEAR_RESULTS' };
 
 const initialState: SearchState = {
@@ -62,13 +96,25 @@ const initialState: SearchState = {
   loading: false,
   error: null,
   totalCount: 0,
-  availableLabels: []
+  availableLabels: [],
+  repositoryInfo: null,
+  searchSummary: '',
+  searchMethod: null,
+  repositoryMetadata: null
 };
 
 function searchReducer(state: SearchState, action: SearchAction): SearchState {
   switch (action.type) {
     case 'SET_REPOSITORY':
-      return { ...state, repository: action.payload, results: [], error: null };
+      return { 
+        ...state, 
+        repository: action.payload, 
+        results: [], 
+        error: null,
+        repositoryInfo: null,
+        repositoryMetadata: null,
+        availableLabels: []
+      };
     case 'SET_QUERY':
       return { ...state, query: action.payload };
     case 'SET_FILTERS':
@@ -83,11 +129,22 @@ function searchReducer(state: SearchState, action: SearchAction): SearchState {
         results: action.payload.results,
         totalCount: action.payload.totalCount,
         availableLabels: action.payload.availableLabels,
+        repositoryInfo: action.payload.repositoryInfo || state.repositoryInfo,
+        searchSummary: action.payload.searchSummary || '',
+        searchMethod: action.payload.searchMethod || null,
         loading: false,
         error: null 
       };
+    case 'SET_REPOSITORY_METADATA':
+      return { ...state, repositoryMetadata: action.payload };
     case 'CLEAR_RESULTS':
-      return { ...state, results: [], totalCount: 0, availableLabels: [] };
+      return { 
+        ...state, 
+        results: [], 
+        totalCount: 0, 
+        searchSummary: '',
+        searchMethod: null
+      };
     default:
       return state;
   }
@@ -97,10 +154,49 @@ const SearchContext = createContext<{
   state: SearchState;
   dispatch: React.Dispatch<SearchAction>;
   searchIssues: () => Promise<void>;
+  fetchRepositoryInfo: () => Promise<void>;
 } | null>(null);
 
 export function SearchProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(searchReducer, initialState);
+
+  const fetchRepositoryInfo = async () => {
+    if (!state.repository.trim()) return;
+
+    try {
+      const repoPath = state.repository.includes('/')
+        ? state.repository
+        : state.repository;
+      
+      const [owner, repo] = repoPath.split('/');
+      if (!owner || !repo) return;
+
+      const response = await fetch(`/api/repository/${owner}/${repo}/info`);
+      if (response.ok) {
+        const data = await response.json();
+        dispatch({
+          type: 'SET_REPOSITORY_METADATA',
+          payload: {
+            labels: data.labels || [],
+            milestones: data.milestones || [],
+            releases: data.releases || []
+          }
+        });
+        // Update available labels immediately
+        dispatch({
+          type: 'SET_RESULTS',
+          payload: {
+            results: state.results,
+            totalCount: state.totalCount,
+            availableLabels: data.labels?.map((l: { name: string }) => l.name) || [],
+            repositoryInfo: data.repository
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Failed to fetch repository info:', error);
+    }
+  };
 
   const searchIssues = async () => {
     if (!state.repository.trim() || !state.query.trim()) {
@@ -135,7 +231,10 @@ export function SearchProvider({ children }: { children: ReactNode }) {
         payload: {
           results: data.results,
           totalCount: data.totalCount,
-          availableLabels: data.availableLabels
+          availableLabels: data.availableLabels,
+          repositoryInfo: data.repositoryInfo,
+          searchSummary: data.searchSummary,
+          searchMethod: data.searchMethod
         }
       });
     } catch (error) {
@@ -147,7 +246,7 @@ export function SearchProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <SearchContext.Provider value={{ state, dispatch, searchIssues }}>
+    <SearchContext.Provider value={{ state, dispatch, searchIssues, fetchRepositoryInfo }}>
       {children}
     </SearchContext.Provider>
   );
