@@ -17,21 +17,21 @@ export function SearchInterface() {
   const validateAndSetRepository = (url: string) => {
     const githubRepoRegex = /^https?:\/\/github\.com\/([^/]+)\/([^/]+)\/?$/;
     const shortFormRegex = /^([^/]+)\/([^/]+)$/;
-    
+
     let match = url.match(githubRepoRegex);
     if (match) {
       const repoPath = `${match[1]}/${match[2]}`;
       dispatch({ type: 'SET_REPOSITORY', payload: repoPath });
       return true;
     }
-    
+
     match = url.match(shortFormRegex);
     if (match) {
       const repoPath = `${match[1]}/${match[2]}`;
       dispatch({ type: 'SET_REPOSITORY', payload: repoPath });
       return true;
     }
-    
+
     return false;
   };
 
@@ -85,20 +85,13 @@ export function SearchInterface() {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-3 mb-2">
                   <Github className="w-6 h-6 text-blue-600" />
-                  <h2 className="text-xl font-semibold text-gray-900 truncate">
-                    {state.repositoryInfo.full_name}
-                  </h2>
-                  <Badge 
-                    variant="secondary" 
-                    className="bg-blue-100 text-blue-700 border-blue-200"
-                  >
+                  <h2 className="text-xl font-semibold text-gray-900 truncate">{state.repositoryInfo.full_name}</h2>
+                  <Badge variant="secondary" className="bg-blue-100 text-blue-700 border-blue-200">
                     {state.repositoryInfo.language || 'N/A'}
                   </Badge>
                 </div>
                 {state.repositoryInfo.description && (
-                  <p className="text-gray-600 mb-3 text-sm leading-relaxed">
-                    {state.repositoryInfo.description}
-                  </p>
+                  <p className="text-gray-600 mb-3 text-sm leading-relaxed">{state.repositoryInfo.description}</p>
                 )}
                 <div className="flex items-center gap-6 text-sm text-gray-500">
                   <div className="flex items-center gap-1">
@@ -119,15 +112,10 @@ export function SearchInterface() {
                   </div>
                 </div>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                className="shrink-0 ml-4"
-                asChild
-              >
-                <a 
+              <Button variant="outline" size="sm" className="shrink-0 ml-4" asChild>
+                <a
                   href={`https://github.com/${state.repositoryInfo.full_name}`}
-                  target="_blank" 
+                  target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2"
                 >
@@ -151,9 +139,7 @@ export function SearchInterface() {
               Advanced GitHub Search
             </h1>
           </div>
-          <p className="text-center text-gray-600 mt-2">
-            Powered by AI for contextually relevant results
-          </p>
+          <p className="text-center text-gray-600 mt-2">Powered by AI for contextually relevant results</p>
         </CardHeader>
 
         <CardContent className="space-y-6">
@@ -163,9 +149,7 @@ export function SearchInterface() {
               <label htmlFor="repo-url" className="text-sm font-semibold text-gray-800 flex items-center gap-2">
                 <Github className="w-4 h-4" />
                 Repository
-                <span className="text-xs text-gray-500 font-normal">
-                  (URL or owner/repo format)
-                </span>
+                <span className="text-xs text-gray-500 font-normal">(URL or owner/repo format)</span>
               </label>
               <div className="relative">
                 <Input
@@ -192,9 +176,7 @@ export function SearchInterface() {
               <label htmlFor="search-query" className="text-sm font-semibold text-gray-800 flex items-center gap-2">
                 <Sparkles className="w-4 h-4" />
                 Search Query
-                <span className="text-xs text-gray-500 font-normal">
-                  (Natural language supported)
-                </span>
+                <span className="text-xs text-gray-500 font-normal">(Natural language supported)</span>
               </label>
               <div className="relative">
                 <Input
@@ -318,24 +300,24 @@ export function SearchInterface() {
                 {/* Label Selector */}
                 <Popover>
                   <PopoverTrigger asChild>
-                    <Button 
-                      type="button" 
-                      variant="outline" 
+                    <Button
+                      type="button"
+                      variant="outline"
                       className="w-full justify-start text-left font-normal bg-white hover:bg-gray-50"
                     >
                       <Tag className="w-4 h-4 mr-2" />
                       {state.filters.labels.length === 0
                         ? 'Select labels to filter by...'
-                        : `${state.filters.labels.length} label${state.filters.labels.length === 1 ? '' : 's'} selected`}
+                        : `${state.filters.labels.length} label${
+                            state.filters.labels.length === 1 ? '' : 's'
+                          } selected`}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-80 p-0" align="start">
                     <div className="max-h-60 overflow-y-auto">
                       <div className="p-3 border-b bg-gray-50">
                         <p className="text-sm font-semibold text-gray-900">Available Labels</p>
-                        <p className="text-xs text-gray-500 mt-1">
-                          Click to add/remove labels from your search
-                        </p>
+                        <p className="text-xs text-gray-500 mt-1">Click to add/remove labels from your search</p>
                       </div>
                       <div className="p-2 space-y-1">
                         {state.availableLabels.map((label) => {
@@ -399,9 +381,7 @@ export function SearchInterface() {
                   )}
                 </span>
               </div>
-              <p className="text-sm text-emerald-700 leading-relaxed">
-                {state.searchSummary}
-              </p>
+              <p className="text-sm text-emerald-700 leading-relaxed">{state.searchSummary}</p>
             </div>
           )}
 

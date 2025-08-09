@@ -1,16 +1,16 @@
-import { 
-  ExternalLink, 
-  Calendar, 
-  GitPullRequest, 
-  AlertCircle, 
-  CheckCircle2, 
-  GitMerge, 
-  User, 
+import {
+  ExternalLink,
+  Calendar,
+  GitPullRequest,
+  AlertCircle,
+  CheckCircle2,
+  GitMerge,
+  User,
   MessageSquare,
   Brain,
   Hash,
   Sparkles,
-  TrendingUp
+  TrendingUp,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader } from './ui/card';
 import { Badge } from './ui/badge';
@@ -157,10 +157,7 @@ export function ResultsList() {
             )}
           </p>
         </div>
-        <Badge
-          variant="secondary"
-          className="text-lg px-4 py-2 bg-blue-100 text-blue-700 border-blue-200"
-        >
+        <Badge variant="secondary" className="text-lg px-4 py-2 bg-blue-100 text-blue-700 border-blue-200">
           {state.totalCount}
         </Badge>
       </div>
@@ -186,9 +183,7 @@ export function ResultsList() {
                       {issue.number}
                     </Badge>
                     {issue.similarity !== undefined && (
-                      <Badge
-                        className={`bg-gradient-to-r ${getRelevanceColor(issue.similarity)} text-white shadow-sm`}
-                      >
+                      <Badge className={`bg-gradient-to-r ${getRelevanceColor(issue.similarity)} text-white shadow-sm`}>
                         <TrendingUp className="w-3 h-3 mr-1" />
                         {getRelevanceLabel(issue.similarity)}
                         <span className="ml-1">({Math.round(issue.similarity * 100)}%)</span>
@@ -203,9 +198,7 @@ export function ResultsList() {
                   </div>
 
                   {/* Title */}
-                  <h3 className="text-xl font-bold text-gray-900 leading-tight line-clamp-2">
-                    {issue.title}
-                  </h3>
+                  <h3 className="text-xl font-bold text-gray-900 leading-tight line-clamp-2">{issue.title}</h3>
 
                   {/* AI Reasoning (if available) */}
                   {issue.reasoning && (
@@ -223,9 +216,7 @@ export function ResultsList() {
                           </div>
                         )}
                       </div>
-                      <p className="text-sm text-blue-700 leading-relaxed">
-                        {issue.reasoning}
-                      </p>
+                      <p className="text-sm text-blue-700 leading-relaxed">{issue.reasoning}</p>
                     </div>
                   )}
                 </div>
